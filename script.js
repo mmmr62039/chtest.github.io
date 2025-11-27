@@ -1,65 +1,65 @@
-console.log("THREE version:", THREE);
+// Import از CDN جدید Three.js به سبک ماژول
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.min.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/GLTFLoader.js';
 
-// صحنه
-let scene = new THREE.Scene();
+// صحنه و دوربین
+const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xaaaaaa);
 
-// دوربین
-let camera = new THREE.PerspectiveCamera(
-    50, window.innerWidth / window.innerHeight, 0.1, 1000
-);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
 camera.position.set(5, 10, 10);
 
 // رندر
-let renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // کنترل دوربین
-let controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(3.5,0,3.5);
+controls.update();
 
-// نور
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-let light = new THREE.DirectionalLight(0xffffff, 1);
+// نورپردازی
+const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 20, 10);
 scene.add(light);
+scene.add(new THREE.AmbientLight(0x404040));
 
-// بورد
-let board = new THREE.Group();
-for (let x = 0; x < 8; x++) {
-    for (let z = 0; z < 8; z++) {
-        let color = (x + z) % 2 === 0 ? 0xffffff : 0x111111;
-        let tile = new THREE.Mesh(
-            new THREE.BoxGeometry(1, 0.2, 1),
-            new THREE.MeshStandardMaterial({ color })
-        );
-        tile.position.set(x, 0, z);
-        board.add(tile);
+// ساخت بورد شطرنج 8x8
+const board = new THREE.Group();
+for(let i=0;i<8;i++){
+    for(let j=0;j<8;j++){
+        const color = (i+j)%2==0 ? 0xffffff : 0x333333;
+        const geometry = new THREE.BoxGeometry(1, 0.2, 1);
+        const material = new THREE.MeshStandardMaterial({color: color});
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(i, 0, j);
+        board.add(cube);
     }
 }
 scene.add(board);
 
-// لود مدل
+// لود مدل GLB
 let mixer;
-let loader = new THREE.GLTFLoader();
-loader.load(
-    "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
-    (gltf) => {
-        let model = gltf.scene;
-        model.scale.set(0.4, 0.4, 0.4);
-        model.position.set(0, 0.2, 0);
-        scene.add(model);
+const loader = new GLTFLoader();
+loader.load('./models/character.glb', function(gltf){
+    const model = gltf.scene;
+    model.scale.set(0.5,0.5,0.5);
+    model.position.set(0,0.2,0); // خانه اولیه
+    scene.add(model);
 
-        mixer = new THREE.AnimationMixer(model);
-        gltf.animations.forEach((clip) => mixer.clipAction(clip).play());
-    }
-);
+    mixer = new THREE.AnimationMixer(model);
+    gltf.animations.forEach(clip => {
+        mixer.clipAction(clip).play();
+    });
+});
 
-// انیمیشن
-let clock = new THREE.Clock();
-function animate() {
+// رندر و انیمیشن
+const clock = new THREE.Clock();
+function animate(){
     requestAnimationFrame(animate);
-    if (mixer) mixer.update(clock.getDelta());
+    if(mixer) mixer.update(clock.getDelta());
     renderer.render(scene, camera);
 }
 animate();
