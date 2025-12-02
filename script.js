@@ -2,6 +2,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.181.2/build/three.m
 import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.181.2/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.181.2/examples/jsm/controls/OrbitControls.js";
 
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xaaaaaa);
 
@@ -42,11 +43,8 @@ let mixer = null;
 const loader = new GLTFLoader();
 
 // مسیر نسبی به فایل داخل پوشه models
-loader.load(
-  './models/character.glb',
-  (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(0.4, 0.4, 0.4);
+loader.load('./models/character.glb', onLoad, onProgress, onError);
+
     // قرار دادن مدل روی مرکز بورد
     model.position.set(0, 0.2, 0);
     scene.add(model);
@@ -81,3 +79,4 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
